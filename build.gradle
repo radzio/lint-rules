@@ -1,0 +1,41 @@
+buildscript {
+    ext.versions = [
+            kotlin: '1.3.61',
+            minSdk: 9,
+            compileSdk: 29,
+            lint: '26.5.0',
+    ]
+
+    ext.deps = [
+            'kotlin': [
+                    'stdlib': "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${versions.kotlin}",
+            ],
+            'lint': [
+                    'core': "com.android.tools.lint:lint:${versions.lint}",
+                    'api': "com.android.tools.lint:lint-api:${versions.lint}",
+                    'tests': "com.android.tools.lint:lint-tests:${versions.lint}",
+            ],
+    ]
+
+    repositories {
+        mavenCentral()
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:4.0.0-alpha09'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
+    }
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+        google()
+        jcenter()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

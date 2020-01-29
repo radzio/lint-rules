@@ -1,0 +1,2 @@
+include ':lint-rules-rxjava2-lint'
+include ':lint-rules-rxjava2'
