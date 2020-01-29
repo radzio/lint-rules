@@ -9,13 +9,17 @@ import com.android.tools.lint.detector.api.JavaContext
 import com.android.tools.lint.detector.api.Scope.JAVA_FILE
 import com.android.tools.lint.detector.api.Severity.ERROR
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiParameter
+import com.intellij.psi.util.TypeConversionUtil
 import org.jetbrains.uast.UCallExpression
+import org.jetbrains.uast.UExpression
 import java.util.*
 
+
 val ISSUE_SUBSCRIBE_MISSING_ON_ERROR = Issue.create(
-    "RxJava2SubscribeMissingOnError",
-    "Flags a version of the subscribeBy() method without onError defined.",
-    "When calling the subscribeBy() method an onError should be defined. Otherwise errors might be thrown and may crash the application or get forwarded to the Plugin Error handler.",
+    "RxKotlin2SubscribeByMissingOnError",
+    "Flags a version of the subscribeBy() extension function without onError defined.",
+    "When calling the subscribeBy() extension function an onError should be defined. Otherwise errors might be thrown and may crash the application or get forwarded to the RxJavaPlugins.onError.",
     CORRECTNESS, PRIORITY, ERROR,
     Implementation(RxKotlin2SubscribeByMissingOnErrorDetector::class.java, EnumSet.of(JAVA_FILE))
 )
@@ -24,19 +28,36 @@ class RxKotlin2SubscribeByMissingOnErrorDetector : Detector(), Detector.UastScan
     override fun getApplicableMethodNames() = listOf("subscribeBy")
 
     override fun visitMethodCall(context: JavaContext, node: UCallExpression, method: PsiMethod) {
-        if ("subscribeBy" == method.name && isReactiveType(context.evaluator, method)) {
-            context.report(
-                ISSUE_SUBSCRIBE_MISSING_ON_ERROR,
-                node,
-                context.getNameLocation(node),
-                "Using a version of subscribe() without an error Consumer."
-            )
+        if ("subscribeBy" == method.name) {
+
+            val type = node.receiverType
+            val erasedType = TypeConversionUtil.erasure(type).canonicalText
+            if (REACTIVE_TYPES.contains(erasedType)) {
+
+                val resolvedMethod = node.resolve()
+                if (resolvedMethod != null) {
+                    val mapping: Map<UExpression, PsiParameter> =
+                        context.evaluator.computeArgumentMapping(node, resolvedMethod)
+                    for (parameter in mapping.values) {
+                        if ("onError" == parameter.name) {
+                            return
+                        }
+                    }
+                    context.report(
+                        ISSUE_SUBSCRIBE_MISSING_ON_ERROR,
+                        node,
+                        context.getNameLocation(node),
+                        "Using a version subscribeBy() without onError defined."
+                    )
+                }
+            }
         }
     }
 
     private fun isReactiveType(evaluator: JavaEvaluator, method: PsiMethod): Boolean {
         return REACTIVE_TYPES.any { evaluator.isMemberInClass(method, it) }
     }
+
 
     companion object {
         private val OBSERVABLE = "io.reactivex.Observable"
