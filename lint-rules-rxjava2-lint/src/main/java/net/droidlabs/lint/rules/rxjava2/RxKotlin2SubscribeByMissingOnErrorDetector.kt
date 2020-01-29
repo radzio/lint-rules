@@ -58,7 +58,6 @@ class RxKotlin2SubscribeByMissingOnErrorDetector : Detector(), Detector.UastScan
         return REACTIVE_TYPES.any { evaluator.isMemberInClass(method, it) }
     }
 
-
     companion object {
         private val OBSERVABLE = "io.reactivex.Observable"
         private val FLOWABLE = "io.reactivex.Flowable"
