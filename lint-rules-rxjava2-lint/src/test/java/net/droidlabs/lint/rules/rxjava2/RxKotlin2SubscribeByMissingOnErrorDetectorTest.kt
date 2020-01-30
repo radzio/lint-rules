@@ -43,5 +43,30 @@ class RxKotlin2SubscribeByMissingOnErrorDetectorTest {
             )
     }
 
+    @Test
+    fun callingMaybeSubscribeBy() {
+        TestLintTask.lint()
+            .files(
+                rxJava2, rxKotlin, TestFiles.kt(
+                    """
+          package foo
+          import io.reactivex.rxkotlin.subscribeBy
+          import io.reactivex.Maybe
 
+          class Example {
+           fun foo() {
+              Maybe.just("test").subscribeBy()
+            }
+          }"""
+                ).indented()
+            )
+            .issues(ISSUE_SUBSCRIBE_MISSING_ON_ERROR)
+            .run()
+            .expect("""
+              |src/foo/Example.kt:7: Error: Using a version subscribeBy() without onError defined. [RxKotlin2SubscribeByMissingOnError]
+              |    Maybe.just("test").subscribeBy()
+              |                       ~~~~~~~~~~~
+              |1 errors, 0 warnings""".trimMargin()
+            )
+    }
 }

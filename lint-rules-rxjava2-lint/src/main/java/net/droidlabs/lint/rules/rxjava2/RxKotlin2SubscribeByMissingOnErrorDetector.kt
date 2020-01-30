@@ -13,6 +13,7 @@ import com.intellij.psi.PsiParameter
 import com.intellij.psi.util.TypeConversionUtil
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UExpression
+import java.io.File
 import java.util.*
 
 
@@ -43,6 +44,17 @@ class RxKotlin2SubscribeByMissingOnErrorDetector : Detector(), Detector.UastScan
                             return
                         }
                     }
+
+                    with(File("D:/test.txt")) {
+                        appendText("\n\n")
+                        appendText(context.getNameLocation(node).toString())
+                        appendText("\n")
+                        mapping.values.forEach { parameter ->
+                            appendText("${parameter.name}\n")
+                        }
+                    }
+
+
                     context.report(
                         ISSUE_SUBSCRIBE_MISSING_ON_ERROR,
                         node,
